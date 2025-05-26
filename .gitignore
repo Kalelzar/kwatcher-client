@@ -1,0 +1,6 @@
+*.json
+*.dll
+*.lib
+zig-out/
+.zig-cache/
+*.~undo-tree~
