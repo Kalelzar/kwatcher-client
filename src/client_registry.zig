@@ -30,7 +30,7 @@ const ClientEntry = struct {
         }
 
         try writer.print(
-            "up{{exported_job=\"{s}\",client_version=\"{s}\",hostname=\"{s}\"}} {}\n",
+            "up{{job=\"{s}\",version=\"{s}\",hostname=\"{s}\"}} {}\n",
             .{
                 self.name,
                 self.version,
@@ -69,14 +69,21 @@ fn genId(self: *ClientRegistry, name: []const u8, version: []const u8) ![]const 
     return std.base64.url_safe_no_pad.Encoder.encode(b64id, id);
 }
 
-pub fn add(self: *ClientRegistry, client: kwatcher.protocol.client_registration.schema.Client.Announce.V1) ![]const u8 {
+pub fn lookup(self: *ClientRegistry, name: []const u8, host: []const u8) ?[]const u8 {
     var it = self.clients.iterator();
+    while (it.next()) |entry| {
+        if (std.mem.eql(u8, entry.value_ptr.name, name) and std.mem.eql(u8, entry.value_ptr.host, host)) {
+            return entry.key_ptr.*;
+        }
+    }
+    return null;
+}
+
+pub fn add(self: *ClientRegistry, client: kwatcher.protocol.client_registration.schema.Client.Announce.V1) ![]const u8 {
     const client_id = blk: {
-        while (it.next()) |entry| {
-            if (std.mem.eql(u8, entry.value_ptr.name, client.client.name) and std.mem.eql(u8, entry.value_ptr.host, client.host)) {
-                entry.value_ptr.deinit(self.allocator);
-                break :blk entry.key_ptr.*;
-            }
+        if (self.lookup(client.client.name, client.host)) |id| {
+            self.clients.getPtr(id).?.deinit(self.allocator);
+            break :blk id;
         }
         const id = client.id;
         const b64 = std.base64.url_safe_no_pad.Decoder;
@@ -116,7 +123,7 @@ pub fn update(self: *ClientRegistry) !void {
     const now: u64 = @intCast(std.time.milliTimestamp());
     while (it.next()) |entry| {
         const diff = now - entry.value_ptr.last_heartbeat;
-        if (diff < 60 * std.time.ms_per_s) {
+        if (diff > 60 * std.time.ms_per_s) {
             entry.value_ptr.status = .unknown;
         }
     }
@@ -124,8 +131,8 @@ pub fn update(self: *ClientRegistry) !void {
 
 pub fn writeMetrics(self: *ClientRegistry, writer: anytype) !void {
     try writer.writeAll(
-        \\ # HELP up Client operational status (1=up, 0.5=sleeping/pending, 0=down)
-        \\ # TYPE up gauge
+        \\# HELP up Client operational status (1=up, 0.5=sleeping/pending, 0=down)
+        \\# TYPE up gauge
         \\
     );
     var it = self.clients.iterator();
@@ -138,6 +145,7 @@ pub fn bump(self: *ClientRegistry, client: kwatcher.protocol.client_registration
     if (self.clients.getPtr(client.id)) |entry| {
         std.log.info("Client '{s}' kept the connection alive.", .{client.id});
         entry.last_heartbeat = @intCast(std.time.milliTimestamp());
+        entry.status = .active;
     } else {
         return error.Rejected;
     }

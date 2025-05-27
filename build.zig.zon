@@ -28,6 +28,14 @@
             .url = "git+https://github.com/Kalelzar/kwatcher.git#fa277df2002a58481b0869c576dd6132f328bc49",
             .hash = "kwatcher-0.1.0-VYVPxrVDAgA_vR6O_GD8rDQTQDgpnk_7S2BpwapGDNIK",
         },
+        .tokamak = .{
+            .url = "git+https://github.com/cztomsik/tokamak.git#88b6875782fa03b9a8408a80e142883968a59788",
+            .hash = "tokamak-2.0.0-AAAAAKG8AQBxwsCtqj-jonqHL9wLLnYttRXj74xbIiUz",
+        },
+        .zmpl = .{
+            .url = "git+https://github.com/jetzig-framework/zmpl.git#3ec11289fdee2e0c70975cb5dd85d3041d723912",
+            .hash = "zmpl-0.0.1-SYFGBuZoAwAMuvHNkO_1BbutpWhg7CdSgYd8t4OaaZeR",
+        },
     },
     .paths = .{
         "build.zig",
