@@ -48,5 +48,7 @@ pub fn @"consume amq.direct/client.heartbeat"(
     client: kwcr.schema.Client.Heartbeat.V1,
     reg: *ClientRegistry,
 ) !void {
+    // As an optimization we could send a reannounce to the client that gave us the heartbeat if it isn't registered.
+    // This would require converting this to a `reply` and support for returning null from publishing routes to signal that we aren't sending shit.
     try reg.bump(client);
 }
