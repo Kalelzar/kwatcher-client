@@ -16,7 +16,7 @@ const Builder = struct {
 
         const check_step = b.step("check", "");
 
-        const kw = b.dependency("kwatcher", .{});
+        const kw = b.dependency("kwatcher", .{ .target = target, .optimize = opt });
         const kwatcher = kw.module("kwatcher");
         const klib = kw.builder.dependency("klib", .{ .target = target, .optimize = opt }).module("klib");
         const tk = b.dependency("tokamak", .{ .target = target, .optimize = opt });
