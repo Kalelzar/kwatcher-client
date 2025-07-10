@@ -19,7 +19,7 @@ pub fn @"reply amq.direct/client.announce"(
     };
 }
 
-pub fn @"publish:requestReannounce amq.topic/client.requests.reannounce"(
+pub fn @"publish!:requestReannounce amq.topic/client.requests.reannounce"(
     reg: *ClientRegistry,
 ) kwatcher.schema.Message(kwcr.schema.Client.Reannounce.Request.V1) {
     reg.ready = true;
